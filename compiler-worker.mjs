@@ -4,16 +4,18 @@ const PACKAGE = "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compil
 let ready;
 
 async function resource(path, binary = false) {
-  const response = await fetch(new URL(path, import.meta.url));
+  const url = new URL(path, import.meta.url);
+  // Mutable templates must bypass browser and CDN caches, including worker fetches.
+  if (!binary) url.searchParams.set("v", String(Date.now()));
+  const response = await fetch(url, { cache: binary ? "default" : "no-store" });
   if (!response.ok) throw new Error(`Kunne ikke hente ${path} (HTTP ${response.status}).`);
   return binary ? new Uint8Array(await response.arrayBuffer()) : response.text();
 }
 
 async function initialize() {
   self.postMessage({ type: "progress", message: "Henter Typst-kompiler og skrifttyper …" });
-  const [bindings, source, regular, bold] = await Promise.all([
+  const [bindings, regular, bold] = await Promise.all([
     import(PACKAGE + "typst_ts_web_compiler.mjs"),
-    resource("./arshjul.typ"),
     resource("./fonts/DejaVuSans.ttf", true),
     resource("./fonts/DejaVuSans-Bold.ttf", true),
   ]);
@@ -28,15 +30,14 @@ async function initialize() {
     builder.free();
     throw error;
   }
-  const compiler = await builder.build(); // consumes the builder
-  compiler.add_source("/arshjul.typ", source);
-  return compiler;
+  return builder.build(); // consumes the builder
 }
 
 self.onmessage = async ({ data: { id, json } }) => {
   try {
     ready ??= initialize().catch(error => { ready = undefined; throw error; });
     const compiler = await ready;
+    compiler.add_source("/arshjul.typ", await resource("./arshjul.typ"));
     self.postMessage({ type: "progress", message: "Kompilerer PDF …" });
     const world = compiler.snapshot("/", "/arshjul.typ", [["data", json]]);
     try {

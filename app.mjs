@@ -26,6 +26,13 @@ function persist() {
   try { localStorage.setItem(STORAGE_KEY, $("json").value); }
   catch { $("storage").textContent = "Browseren kan ikke gemme kladden. Brug »Gem fil« for at beholde en kopi."; }
 }
+async function loadExample() {
+  const response = await fetch(new URL("./example.json", import.meta.url), { cache: "no-cache" });
+  if (!response.ok) throw new Error(`Eksemplet kunne ikke indlæses (HTTP ${response.status}).`);
+  const source = await response.text();
+  parseConfig(source);
+  return source;
+}
 function validate() {
   try {
     data = parseConfig($("json").value);
@@ -119,7 +126,9 @@ function failed(message) {
   finish();
 }
 function createWorker() {
-  const instance = new Worker(new URL("./compiler-worker.mjs", import.meta.url), { type: "module" });
+  const workerURL = new URL("./compiler-worker.mjs", import.meta.url);
+  workerURL.searchParams.set("v", String(Date.now()));
+  const instance = new Worker(workerURL, { type: "module" });
   instance.onmessage = ({ data: result }) => {
     if (result.type === "progress") { if (busy) status(result.message); return; }
     if (result.id !== revision) { finish(); return; } // Never show an out-of-date result as current.
@@ -219,23 +228,36 @@ $("file").addEventListener("change", async () => {
     renderForm();
   } catch (exception) { error(exception.message); }
 });
-$("example").addEventListener("click", () => {
+$("example").addEventListener("click", async () => {
   if (!confirm("Nulstil til eksemplet? Dine nuværende ændringer bliver erstattet.")) return;
-  $("json").value = example;
-  changed();
-  renderForm();
-  compile();
+  const beforeFetch = revision;
+  $("example").disabled = true;
+  try {
+    const source = await loadExample();
+    if (revision !== beforeFetch) throw new Error("Årshjulet blev ændret under indlæsningen. Tryk på »Nulstil til eksempel« igen, hvis du stadig vil nulstille.");
+    example = source;
+    $("json").value = example;
+    changed();
+    renderForm();
+    // An unchanged example is not a user draft: let future loads use new defaults.
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      $("storage").textContent = "Det nyeste eksempel er indlæst. Dine egne ændringer gemmes kun i denne browser. Brug »Gem fil« for at beholde en kopi.";
+    } catch { /* persist() already reports storage restrictions. */ }
+    compile();
+  } catch (exception) { error(exception.message); }
+  finally { $("example").disabled = false; }
 });
 
 async function start() {
   try {
-    const response = await fetch(new URL("./example.json", import.meta.url));
-    if (!response.ok) throw new Error(`Eksemplet kunne ikke indlæses (HTTP ${response.status}).`);
-    example = await response.text();
-    parseConfig(example);
+    example = await loadExample();
     let draft;
     try { draft = localStorage.getItem(STORAGE_KEY); } catch { /* Saving reports storage restrictions. */ }
     $("json").value = draft ?? example;
+    if (draft !== null && draft !== undefined) {
+      $("storage").textContent = "Din gemte kladde er gendannet. Brug »Nulstil til eksempel« for at hente de nyeste standardaktiviteter i stedet. Brug »Gem fil« for at beholde en kopi af kladden.";
+    }
     for (const id of ["settings", "json", "format", "import", "example"]) $(id).disabled = false;
     if (validate()) { renderForm(); compile(); }
     else { tab("json"); status("Den gemte kladde indeholder en fejl. Ret indstillingerne under »Avanceret«, eller nulstil til eksemplet."); }

@@ -39,6 +39,12 @@ Your JSON and generated PDFs **are not uploaded**. The CDN receives requests for
 
 The web editor accepts years 1–9999 and quarter colors in `#RRGGBB` notation; CLI Typst accepts additional color/year representations.
 
+### Updates and saved drafts
+
+GitHub Pages serves assets with a cache lifetime of up to ten minutes. If the interface looks old after deployment, wait for deployment to finish and use a hard refresh (`Ctrl+Shift+R` / `Cmd+Shift+R`).
+
+The example is revalidated when the page loads. Each PDF compilation fetches the latest Typst template with a fresh URL and without storing it in the browser cache; the worker script also uses a fresh URL when started. This prevents stale PDF layouts without repeatedly downloading the large compiler or fonts. **Nulstil til eksempel** fetches the latest example again, even if the tab has been open for a while. A failed reset leaves your draft intact. Resetting clears the saved draft so the next visit uses the current defaults; subsequent edits are saved again. Your existing drafts are otherwise deliberately preserved across deployments, and the editor indicates when one has been restored. Updating the site never silently replaces your own activities.
+
 ## Command-line template
 
 Requires Typst (tested with 0.15.1). No external Typst packages are required.

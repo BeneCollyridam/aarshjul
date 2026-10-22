@@ -7,9 +7,23 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { createStaticServer } from "./serve.mjs";
+import { createServer } from "node:http";
 
 const profile = await mkdtemp(join(tmpdir(), "arshjul-browser-"));
-const server = createStaticServer("/hjul/"); // Exercise GitHub Pages project paths.
+const assets = createStaticServer("/hjul/"); // Exercise GitHub Pages project paths.
+const originalTemplate = await readFile(new URL("./arshjul.typ", import.meta.url), "utf8");
+let template = originalTemplate;
+const templateRequests = [];
+const server = createServer((request, response) => {
+  if (new URL(request.url, "http://localhost").pathname === "/hjul/arshjul.typ") {
+    templateRequests.push(request.url);
+    // Deliberately cacheable: fresh template URLs must defeat stale worker caches.
+    response.writeHead(200, { "Content-Type": "text/plain", "Cache-Control": "public, max-age=86400" });
+    response.end(template);
+  } else {
+    assets.emit("request", request, response);
+  }
+});
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const base = `http://127.0.0.1:${server.address().port}/hjul/`;
 const browser = spawn(process.env.CHROMIUM ?? "chromium", ["--headless", "--no-sandbox", "--disable-gpu", "--no-first-run", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "about:blank"], { stdio: ["ignore", "ignore", "pipe"] });
@@ -91,6 +105,15 @@ try {
   }
 
   await evaluate(`document.getElementById('auto').click(); document.getElementById('months').children[0].open = true;`);
+  template = '#panic("template-update-check")';
+  await evaluate('document.getElementById("compile").click()');
+  await until('document.getElementById("error").textContent.includes("template-update-check")');
+  template = originalTemplate;
+  await evaluate('document.getElementById("compile").click()');
+  await until('document.getElementById("download").getAttribute("aria-disabled") === "false"');
+  assert.equal(templateRequests.length, 3);
+  assert.equal(new Set(templateRequests).size, 3);
+  console.log("PASS: Template updates bypass warm browser/worker caches without reloading the page.");
   await evaluate('document.getElementById("months").children[1].open = false; document.getElementById("json-tab").click(); document.getElementById("form-tab").click()');
   assert.equal(await evaluate('document.getElementById("months").children[1].open'), false);
   // Two edits to the same field catch stale references after JSON validation.
@@ -104,9 +127,30 @@ try {
   console.log("PASS: Form edits synchronize JSON; manual recompilation updates the PDF.");
 
   await evaluate('document.getElementById("example").click()');
-  await until('document.getElementById("download").getAttribute("aria-disabled") === "false"');
+  await until('document.getElementById("example").disabled === false && document.getElementById("download").getAttribute("aria-disabled") === "false"');
   assert.deepEqual(await evaluate('JSON.parse(document.getElementById("json").value)'), JSON.parse(await readFile(new URL("./example.json", import.meta.url), "utf8")));
   console.log("PASS: Reset restores example.json and recompiles even with automatic updates off.");
+
+  await evaluate(`window.__originalFetch = window.fetch;
+    window.__exampleRequests = [];
+    window.__exampleStatus = 200;
+    window.fetch = (url, options) => {
+      if (new URL(url).pathname.endsWith('/example.json')) {
+        window.__exampleRequests.push(options?.cache);
+        return Promise.resolve(new Response('{"title":"Opdateret eksempel","year":2042,"events":[]}', { status: window.__exampleStatus }));
+      }
+      return window.__originalFetch(url, options);
+    };
+    document.getElementById('example').click();`);
+  await until('document.getElementById("example").disabled === false && document.getElementById("download").getAttribute("aria-disabled") === "false"');
+  assert.equal(await evaluate('JSON.parse(document.getElementById("json").value).title'), "Opdateret eksempel");
+  assert.deepEqual(await evaluate('window.__exampleRequests'), ["no-cache"]);
+  assert.equal(await evaluate('localStorage.getItem("arshjul.draft.v1:/hjul/")'), null);
+  await evaluate('window.__exampleStatus = 503; document.getElementById("example").click()');
+  await until('document.getElementById("example").disabled === false && document.getElementById("error").textContent.includes("503")');
+  assert.equal(await evaluate('JSON.parse(document.getElementById("json").value).title'), "Opdateret eksempel");
+  await evaluate('window.fetch = window.__originalFetch');
+  console.log("PASS: Reset revalidates the latest example, clears stale defaults, and preserves data on network failure.");
 
   const oldHref = await evaluate('document.getElementById("download").href');
   await evaluate('document.getElementById("compile").click(); document.getElementById("title").value = "Nyere ændring"; document.getElementById("title").dispatchEvent(new Event("input"))');
@@ -169,7 +213,7 @@ try {
   await evaluate('document.getElementById("form-tab").click()');
   if (process.env.SCREENSHOT) {
     await evaluate('document.getElementById("example").click()');
-    await until('document.getElementById("download").getAttribute("aria-disabled") === "false"');
+    await until('document.getElementById("example").disabled === false && document.getElementById("download").getAttribute("aria-disabled") === "false"');
     await delay(5000);
     const image = await command("Page.captureScreenshot", { format: "png", captureBeyondViewport: true });
     await writeFile(process.env.SCREENSHOT.replace(/\.png$/, "") + "-mobile.png", Buffer.from(image.data, "base64"));
