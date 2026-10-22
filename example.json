@@ -1,0 +1,20 @@
+{
+  "title": "Årshjul",
+  "year": 2027,
+  "subtitle": "Fælles overblik · planer og aktiviteter",
+  "footer": "Arbejdsdokument · Opdateres efter behov",
+  "events": [
+    { "month": 1, "title": "Opstart", "date": "12. jan.", "description": "Afklar mål, ansvar og prioriteringer for året." },
+    { "month": 2, "title": "Fagdag", "description": "Vidensdeling og faglig inspiration for hele teamet." },
+    { "month": 3, "title": "Årsmøde", "date": "18. marts", "description": "Gennemgå årsrapport, regnskab og nye beslutninger." },
+    { "month": 4, "title": "Arbejdsdag", "description": "Fælles indsats for et godt arbejdsmiljø." },
+    { "month": 5, "title": "Planlægning", "description": "Forbered efterårets aktiviteter og afklar ressourcebehov." },
+    { "month": 6, "title": "Sommerafslutning", "description": "Saml op på første halvår og mød hinanden til et socialt arrangement." },
+    { "month": 7, "title": "Sommerferie", "description": "Ferieafvikling og reduceret aktivitet." },
+    { "month": 8, "title": "Efterårsstart", "description": "Saml teamet og juster planerne for efteråret." },
+    { "month": 9, "title": "Strategidag", "description": "Arbejd med udvikling og langsigtede mål." },
+    { "month": 10, "title": "Budget", "description": "Udarbejd forslag til næste års budget." },
+    { "month": 11, "title": "Evaluering", "description": "Vurder resultater og samle forslag til forbedringer." },
+    { "month": 12, "title": "Årsafslutning", "date": "16. dec.", "description": "Saml op på året og markér indsatsen sammen." }
+  ]
+}
