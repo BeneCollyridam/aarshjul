@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lav et dansk årshjul på A4. Redigér aktiviteter og JSON, og hent en PDF direkte i din browser.">
+  <title>Årshjul · PDF-værksted</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header class="page-header">
+    <div><h1>Generer en PDF med et årshjul.</h1></div>
+    <p class="intro">Redigér dit årshjul og hent en trykklar PDF.<br>Alt kompileres lokalt i din browser.</p>
+  </header>
+
+  <main>
+    <section class="editor panel" aria-label="Redigér årshjul">
+      <div class="tabs" role="tablist" aria-label="Redigeringsmetode">
+        <button id="form-tab" role="tab" aria-selected="true" aria-controls="form-panel">Indstillinger</button>
+        <button id="json-tab" role="tab" aria-selected="false" aria-controls="json-panel" tabindex="-1">JSON</button>
+      </div>
+
+      <div id="form-panel" role="tabpanel" aria-labelledby="form-tab">
+        <fieldset id="settings" disabled>
+          <legend class="sr-only">Dokument og aktiviteter</legend>
+          <div class="document-fields">
+            <div class="field-row">
+              <label>Titel<input id="title" type="text" autocomplete="off"></label>
+              <label class="year-field">År<input id="year" type="number" min="1" max="9999"></label>
+            </div>
+          </div>
+          <div class="section-heading"><h2>Aktiviteter</h2><span>Januar – december</span></div>
+          <p class="hint">Korte titler i hjulet. Datoer og beskrivelser i sidekolonnerne.</p>
+          <div id="months"></div>
+        </fieldset>
+      </div>
+
+      <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>
+        <label for="json">Konfiguration</label>
+        <p class="hint" id="json-help">Samme JSON som til kommandolinjen. Her kan du også ændre månedsnavne og kvartalsfarver.</p>
+        <textarea id="json" spellcheck="false" autocomplete="off" aria-describedby="json-help" disabled></textarea>
+        <button id="format" class="secondary" disabled>Formatér JSON</button>
+      </div>
+
+      <div class="file-actions">
+        <button id="import" class="secondary" disabled>Åbn JSON</button>
+        <input id="file" type="file" accept=".json,application/json" hidden>
+        <button id="export" class="secondary" disabled>Gem JSON</button>
+        <button id="example" class="secondary" type="button" disabled>Nulstil til eksempel</button>
+      </div>
+      <p class="hint" id="storage">Kladder gemmes kun i denne browser. Gem JSON for at beholde en kopi.</p>
+    </section>
+
+    <section class="preview panel" aria-labelledby="preview-heading">
+      <div class="preview-toolbar">
+        <div><h2 id="preview-heading">Forhåndsvisning</h2><p class="hint">PDF · A4 liggende</p></div>
+        <div class="compile-actions">
+          <button id="compile" disabled>Opdatér PDF</button>
+          <a id="download" class="button secondary" aria-disabled="true" tabindex="-1">Hent PDF</a>
+        </div>
+      </div>
+      <div class="status-row">
+        <p id="status" role="status" aria-live="polite">Indlæser eksempel …</p>
+        <label class="auto-label"><input id="auto" type="checkbox" checked> Opdatér automatisk</label>
+      </div>
+      <pre id="error" role="alert" hidden></pre>
+      <div class="pdf-container" id="preview-container" aria-busy="false">
+        <p id="placeholder">Din PDF vises her, når kompileringen er færdig.<br><small>Første gang hentes Typst-kompileren. Det kan tage lidt tid.</small></p>
+        <iframe id="pdf" title="Forhåndsvisning af årshjul som PDF" hidden></iframe>
+      </div>
+      <p class="privacy">Ingen upload af dine data. Typst/WebAssembly hentes fra jsDelivr; skrifttyper og skabelon hentes fra dette websted. Hvis din browser ikke viser PDF-filer, kan du bruge »Hent PDF«.</p>
+    </section>
+  </main>
+  <noscript>Denne side kræver JavaScript og WebAssembly for at kunne kompilere PDF-filer.</noscript>
+
+  <template id="month-template">
+    <details class="month">
+      <summary><span class="month-name"></span><span class="event-count"></span></summary>
+      <div class="event-list"></div>
+      <button type="button" class="add-event secondary">+ Tilføj aktivitet</button>
+    </details>
+  </template>
+  <template id="event-template">
+    <div class="event">
+      <div class="field-row">
+        <label>Titel<input data-key="title" type="text" required></label>
+        <button type="button" class="remove-event quiet">Fjern</button>
+      </div>
+      <label>Dato <span class="hint">(valgfri tekst)</span><input data-key="date" type="text" placeholder="Fx 12. jan."></label>
+      <label>Beskrivelse<textarea data-key="description" rows="2"></textarea></label>
+    </div>
+  </template>
+</body>
+</html>

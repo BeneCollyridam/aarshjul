@@ -1,5 +1,5 @@
 {
-  description = "Development shell with Typst";
+  description = "Development shell with Typst and Node.js";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -19,7 +19,7 @@
         in
         {
           default = pkgs.mkShell {
-            packages = [ pkgs.typst ];
+            packages = [ pkgs.typst pkgs.nodejs ];
           };
         });
     };

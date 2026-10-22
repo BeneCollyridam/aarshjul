@@ -9,8 +9,7 @@
 #assert(type(data) == dictionary, message: "The JSON input must be an object.")
 #let year = str(data.at("year", default: datetime.today().year()))
 #let title = data.at("title", default: "Årshjul")
-#let subtitle = data.at("subtitle", default: "")
-#let footer = data.at("footer", default: "")
+#let footer = datetime.today().display("[day].[month].[year]")
 #let months = data.at("months", default: (
   "Januar", "Februar", "Marts", "April", "Maj", "Juni",
   "Juli", "August", "September", "Oktober", "November", "December",
@@ -146,7 +145,6 @@
 #block(width: 100%, height: 20mm)[
   #text(size: 23pt, weight: "bold")[#title]
   #h(1fr)#text(size: 19pt, fill: muted)[#year]
-  #if subtitle != "" { [#linebreak()#text(size: 9pt, fill: muted)[#subtitle]] }
 ]
 #grid(
   columns: (86mm, 95mm, 86mm),
