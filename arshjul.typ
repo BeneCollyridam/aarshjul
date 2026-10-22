@@ -75,9 +75,9 @@
     } else {
       fitted(
         entries.map(event => [
-          #text(weight: "bold")[#event.title]
-          #if event.at("date", default: "") != "" { text(fill: muted)[ · #event.date] }
-          #if event.at("description", default: "") != "" { [ — #event.description] }
+          #text(weight: "bold")[#event.title\ ]
+          #if event.at("date", default: "") != "" { text(fill: muted)[#event.date\ ] }
+          #if event.at("description", default: "") != "" { [ #event.description] }
         ]).join(parbreak()),
         80mm, 16mm, label: months.at(index) + " descriptions",
         words: entries.map(event => event.title + " " + event.at("description", default: "")
