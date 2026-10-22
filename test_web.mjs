@@ -81,6 +81,7 @@ try {
   }
   assert.equal(await evaluate('document.getElementById("error").textContent'), "");
   assert.equal(await evaluate('document.getElementById("subtitle") === null && document.getElementById("footer") === null'), true);
+  assert.equal(await evaluate('/\\bJSON\\b/.test(document.body.innerText)'), false);
   assert.equal(await evaluate('[...document.getElementById("months").children].every(month => month.open)'), true);
   console.log("PASS: Real WASM compilation and downloadable PDF under /hjul/.");
   if (process.env.SCREENSHOT) {

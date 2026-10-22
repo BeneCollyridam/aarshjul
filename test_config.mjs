@@ -9,7 +9,7 @@ assert.equal(MONTHS[11], "December");
 assert.deepEqual(parseConfig("{}"), {});
 assert.deepEqual(parseConfig('{"subtitle":"Legacy subtitle","footer":"Legacy footer"}'), { subtitle: "Legacy subtitle", footer: "Legacy footer" });
 const example = await readFile(new URL("./example.json", import.meta.url), "utf8");
-assert.equal(parseConfig(example).events.length, 12);
+assert.deepEqual(parseConfig(example), JSON.parse(example));
 assert.equal(JSON.parse(compilerData({})).year, new Date().getFullYear());
 assert.equal(JSON.parse(compilerData({ year: 2030 })).year, 2030);
 const custom = { title: "#text[not code]", custom: { keep: true }, events: [{ month: 1, title: "<script>alert(1)</script>", extra: 3 }] };

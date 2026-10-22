@@ -24,7 +24,7 @@ function downloadEnabled(enabled) {
 }
 function persist() {
   try { localStorage.setItem(STORAGE_KEY, $("json").value); }
-  catch { $("storage").textContent = "Browseren kan ikke gemme kladden. Brug »Gem JSON« for at beholde en kopi."; }
+  catch { $("storage").textContent = "Browseren kan ikke gemme kladden. Brug »Gem fil« for at beholde en kopi."; }
 }
 function validate() {
   try {
@@ -210,17 +210,17 @@ $("file").addEventListener("change", async () => {
   $("file").value = "";
   if (!file) return;
   try {
-    if (file.size > 1_000_000) throw new Error("JSON-filen må højst være 1 MB.");
+    if (file.size > 1_000_000) throw new Error("Filen må højst være 1 MB.");
     const source = await file.text();
     parseConfig(source); // A bad import must not replace the current draft.
-    if (!confirm("Erstat den nuværende kladde med denne JSON-fil?")) return;
+    if (!confirm("Erstat den nuværende kladde med årshjulet fra denne fil?")) return;
     $("json").value = source;
     changed();
     renderForm();
   } catch (exception) { error(exception.message); }
 });
 $("example").addEventListener("click", () => {
-  if (!confirm("Nulstil til example.json? Dine nuværende ændringer bliver erstattet.")) return;
+  if (!confirm("Nulstil til eksemplet? Dine nuværende ændringer bliver erstattet.")) return;
   $("json").value = example;
   changed();
   renderForm();
@@ -238,7 +238,7 @@ async function start() {
     $("json").value = draft ?? example;
     for (const id of ["settings", "json", "format", "import", "example"]) $(id).disabled = false;
     if (validate()) { renderForm(); compile(); }
-    else { tab("json"); status("Den gemte kladde indeholder en fejl. Ret JSON, eller nulstil til eksemplet."); }
+    else { tab("json"); status("Den gemte kladde indeholder en fejl. Ret indstillingerne under »Avanceret«, eller nulstil til eksemplet."); }
   } catch (exception) {
     error(exception.message);
     status("Siden kunne ikke indlæses. Genindlæs siden for at prøve igen.");

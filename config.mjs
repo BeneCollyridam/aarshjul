@@ -4,8 +4,10 @@ const check = (condition, message) => { if (!condition) throw new Error(message)
 
 // Keep optional and unknown fields intact when switching between JSON and forms.
 export function parseConfig(source) {
-  const data = JSON.parse(source);
-  check(object(data), "Konfigurationen skal være et JSON-objekt.");
+  let data;
+  try { data = JSON.parse(source); }
+  catch { throw new Error("Indstillingerne kunne ikke læses. Kontrollér indholdet, eller åbn en tidligere gemt årshjulsfil."); }
+  check(object(data), "Filen skal indeholde et samlet sæt indstillinger.");
   check(data.title === undefined || typeof data.title === "string", "title skal være en tekststreng.");
   check(data.year === undefined || (Number.isInteger(data.year) && data.year > 0 && data.year <= 9999), "year skal være et heltal mellem 1 og 9999.");
   if (data.months !== undefined) {

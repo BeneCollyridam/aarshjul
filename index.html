@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Lav et dansk årshjul på A4. Redigér aktiviteter og JSON, og hent en PDF direkte i din browser.">
+  <meta name="description" content="Lav et dansk årshjul på A4. Redigér dine aktiviteter, og hent en PDF direkte i din browser.">
   <title>Årshjul · PDF-værksted</title>
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.mjs"></script>
@@ -18,7 +18,7 @@
     <section class="editor panel" aria-label="Redigér årshjul">
       <div class="tabs" role="tablist" aria-label="Redigeringsmetode">
         <button id="form-tab" role="tab" aria-selected="true" aria-controls="form-panel">Indstillinger</button>
-        <button id="json-tab" role="tab" aria-selected="false" aria-controls="json-panel" tabindex="-1">JSON</button>
+        <button id="json-tab" role="tab" aria-selected="false" aria-controls="json-panel" tabindex="-1">Avanceret</button>
       </div>
 
       <div id="form-panel" role="tabpanel" aria-labelledby="form-tab">
@@ -38,18 +38,18 @@
 
       <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>
         <label for="json">Konfiguration</label>
-        <p class="hint" id="json-help">Samme JSON som til kommandolinjen. Her kan du også ændre månedsnavne og kvartalsfarver.</p>
+        <p class="hint" id="json-help">Her kan du redigere de samlede indstillinger, herunder månedsnavne og kvartalsfarver.</p>
         <textarea id="json" spellcheck="false" autocomplete="off" aria-describedby="json-help" disabled></textarea>
-        <button id="format" class="secondary" disabled>Formatér JSON</button>
+        <button id="format" class="secondary" disabled>Formatér</button>
       </div>
 
       <div class="file-actions">
-        <button id="import" class="secondary" disabled>Åbn JSON</button>
+        <button id="import" class="secondary" disabled>Åbn konfiguration</button>
         <input id="file" type="file" accept=".json,application/json" hidden>
-        <button id="export" class="secondary" disabled>Gem JSON</button>
+        <button id="export" class="secondary" disabled>Gem konfiguration</button>
         <button id="example" class="secondary" type="button" disabled>Nulstil til eksempel</button>
       </div>
-      <p class="hint" id="storage">Kladder gemmes kun i denne browser. Gem JSON for at beholde en kopi.</p>
+      <p class="hint" id="storage">Kladder gemmes kun i denne browser. Brug »Gem fil« for at beholde en kopi af dit årshjul.</p>
     </section>
 
     <section class="preview panel" aria-labelledby="preview-heading">
